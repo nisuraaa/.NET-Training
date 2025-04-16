@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Ki+pAYM/J3M=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\nisuran\\Desktop\\DotNet\\Day1\\Day1\\Day1.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\nisuran\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
