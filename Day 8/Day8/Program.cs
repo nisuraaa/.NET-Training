@@ -184,9 +184,7 @@ class Program
                             var employeeProject = await projectService.GetOrCreateProjectAsync(projectName);
                             emp.Projects.Add(employeeProject);
                         }
-                        await employeeService.AddEmployee(emp);
-                        employeeRepo.Add(emp);
-                    }
+                        await employeeService.AddEmployee(emp);                    }
                     break;
 
                 // case "19":
