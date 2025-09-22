@@ -1,9 +1,6 @@
-namespace EmployeeServices.Domain.Repositories;
-
-using EmployeeServices.Domain.Entities;
-
 public interface IEmployeeRepository
 {
+    // Basic CRUD operations
     Task<Employee?> GetByIdAsync(string id);
     Task<List<Employee>> GetAllAsync();
     Task<Employee> AddAsync(Employee employee);

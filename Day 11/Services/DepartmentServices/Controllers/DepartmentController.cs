@@ -1,4 +1,4 @@
-using DepartmentServices.Interfaces;
+﻿using DepartmentServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DepartmentServices.Controllers
@@ -33,5 +33,15 @@ namespace DepartmentServices.Controllers
             return Ok(department);
         }
 
+        [HttpGet("name/{name}")]
+        public async Task<ActionResult<Department>> GetDepartmentByName(string name)
+        {
+            var department = await _departmentService.GetByNameAsync(name);
+            if (department == null)
+            {
+                return NotFound();
+            }
+            return Ok(department);
+        }
     }
 }

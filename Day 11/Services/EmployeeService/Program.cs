@@ -19,12 +19,12 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<dbContext>(options =>
+builder.Services.AddDbContext<EmployeeDbContext>(options =>
     options.UseSqlite("Data Source=employee.db"));
 
 // Register repositories and services
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IEmployee, EmployeeService>();
+builder.Services.AddScoped<IEmployeeAppService, EmployeeService>();
 
 builder.Services.AddHttpClient<IDepartmentHttpClient, DepartmentHttpClient>(client =>
 {
@@ -66,9 +66,8 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<dbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<EmployeeDbContext>();
     await context.Database.EnsureCreatedAsync();
 }
-
 
 app.Run();
