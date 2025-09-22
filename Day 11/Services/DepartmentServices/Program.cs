@@ -21,14 +21,14 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<dbContext>(options =>
+builder.Services.AddDbContext<DepartmentDbContext>(options =>
     options.UseSqlite("Data Source=department.db"));
 
 // Register repositories and services
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IDepartmentAppService, DepartmentService>();
 
 builder.Services.AddCors(options =>
 {
@@ -59,7 +59,7 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<dbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<DepartmentDbContext>();
     await context.Database.EnsureCreatedAsync();
 }
 

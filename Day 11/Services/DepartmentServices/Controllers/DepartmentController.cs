@@ -1,4 +1,4 @@
-﻿using DepartmentServices.Interfaces;
+using DepartmentServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DepartmentServices.Controllers
@@ -8,9 +8,9 @@ namespace DepartmentServices.Controllers
 
     public class DepartmentController : ControllerBase
     {
-       private readonly IDepartmentService _departmentService;
+       private readonly IDepartmentAppService _departmentService;
 
-        public DepartmentController(IDepartmentService departmentService)
+        public DepartmentController(IDepartmentAppService departmentService)
         {
             _departmentService = departmentService;
         }

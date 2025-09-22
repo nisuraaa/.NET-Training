@@ -3,11 +3,11 @@ using ProjectService.Interfaces;
 
 namespace ProjectService.Services
 {
-    public class ProjectService1 : IProjectService
+    public class ProjectService : IProjectAppService
     {
         private readonly IProjectRepository _projectRepository;
 
-        public ProjectService1(IProjectRepository projectRepository)
+        public ProjectService(IProjectRepository projectRepository)
         {
             _projectRepository = projectRepository;
         }
@@ -33,11 +33,8 @@ namespace ProjectService.Services
             {
                 throw new ArgumentException("Project name cannot be null or empty.", nameof(projectName));
             }
-            var project = new Project
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = projectName,
-            };
+            var project = new Project();
+            project.Initialize(Guid.NewGuid().ToString(), projectName);
             return _projectRepository.AddAsync(project);
         }
 

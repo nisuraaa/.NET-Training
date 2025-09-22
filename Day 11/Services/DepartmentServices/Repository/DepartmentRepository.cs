@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 public class DepartmentRepository : IDepartmentRepository
 {
-    private readonly dbContext _dbContext;
+    private readonly DepartmentDbContext _dbContext;
 
-    public DepartmentRepository(dbContext dbContext)
+    public DepartmentRepository(DepartmentDbContext dbContext)
     {
         _dbContext = dbContext;
     }

@@ -3,7 +3,7 @@ using DepartmentServices.Interfaces;
 
 namespace DepartmentServices.Services
 {
-    public class DepartmentService : IDepartmentService
+    public class DepartmentService : IDepartmentAppService
     {
         private readonly IDepartmentRepository _departmentRepository;
 
@@ -33,11 +33,8 @@ namespace DepartmentServices.Services
             {
                 throw new ArgumentException("Department name cannot be null or empty.", nameof(departmentName));
             }
-            var department = new Department
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = departmentName,
-            };
+            var department = new Department();
+            department.Initialize(Guid.NewGuid().ToString(), departmentName);
             return _departmentRepository.AddAsync(department);
         }
 

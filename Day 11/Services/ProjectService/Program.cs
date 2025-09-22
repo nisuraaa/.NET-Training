@@ -20,14 +20,14 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<dbContext>(options =>
+builder.Services.AddDbContext<ProjectDbContext>(options =>
     options.UseSqlite("Data Source=project.db"));
 
 // Register repositories and services
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 
 
-builder.Services.AddScoped<IProjectService, ProjectService1>();
+builder.Services.AddScoped<IProjectAppService, ProjectService>();
 
 builder.Services.AddCors(options =>
 {
@@ -58,7 +58,7 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<dbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<ProjectDbContext>();
     await context.Database.EnsureCreatedAsync();
 }
 

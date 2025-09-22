@@ -1,4 +1,4 @@
-﻿using ProjectService.Interfaces;
+using ProjectService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ProjectService.Controllers
@@ -8,9 +8,9 @@ namespace ProjectService.Controllers
 
     public class ProjectController : ControllerBase
     {
-       private readonly IProjectService _projectService;
+       private readonly IProjectAppService _projectService;
 
-        public ProjectController(IProjectService projectService)
+        public ProjectController(IProjectAppService projectService)
         {
             _projectService = projectService;
         }

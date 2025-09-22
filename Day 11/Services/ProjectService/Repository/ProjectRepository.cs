@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 public class ProjectRepository : IProjectRepository
 {
-    private readonly dbContext _dbContext;
+    private readonly ProjectDbContext _dbContext;
 
-    public ProjectRepository(dbContext dbContext)
+    public ProjectRepository(ProjectDbContext dbContext)
     {
         _dbContext = dbContext;
     }

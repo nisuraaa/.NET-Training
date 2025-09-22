@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
-public class dbContext : DbContext
+public class DepartmentDbContext : DbContext
 {
-    public dbContext(DbContextOptions<dbContext> options)
+    public DepartmentDbContext(DbContextOptions<DepartmentDbContext> options)
        : base(options)
     {
     }
