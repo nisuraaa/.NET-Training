@@ -13,7 +13,13 @@ public class ProjectDbContext : DbContext
         modelBuilder.Entity<Project>(entity =>
         {
             entity.HasKey(d => d.Id);
-            entity.Property(d => d.Name).IsRequired().HasMaxLength(50);
+            entity.Property(d => d.Name)
+                  .IsRequired()
+                  .HasMaxLength(50)
+                  .UseCollation("NOCASE"); // SQLite: make comparisons case-insensitive
+
+            entity.HasIndex(d => d.Name)
+                  .IsUnique();
         });
 
     }

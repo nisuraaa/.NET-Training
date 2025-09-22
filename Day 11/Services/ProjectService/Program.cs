@@ -27,7 +27,7 @@ builder.Services.AddDbContext<ProjectDbContext>(options =>
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 
 
-builder.Services.AddScoped<IProjectAppService, ProjectService>();
+builder.Services.AddScoped<IProjectAppService, ProjectService.Services.ProjectService>();
 
 builder.Services.AddCors(options =>
 {

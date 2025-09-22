@@ -11,8 +11,10 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<Project?> GetByNameAsync(string name)
     {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var normalized = name.Trim();
         return await _dbContext.Projects
-            .FirstOrDefaultAsync(d => d.Name == name);
+            .FirstOrDefaultAsync(d => d.Name == normalized);
     }
 
     public async Task<Project?> GetByIdAsync(string id)
@@ -40,9 +42,9 @@ public class ProjectRepository : IProjectRepository
         return project;
     }
 
-    public async Task<bool> DeleteAsync(string name)
+    public async Task<bool> DeleteAsync(string id)
     {
-        var project = await GetByNameAsync(name);
+        var project = await GetByIdAsync(id);
         if (project == null)
         {
             return false;
