@@ -1,3 +1,5 @@
+namespace ProjectService.Domain.Entities;
+
 public class Project
 {
     public string Id { get; private set; } = default!;

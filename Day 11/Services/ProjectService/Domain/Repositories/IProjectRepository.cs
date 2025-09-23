@@ -1,3 +1,7 @@
+using ProjectService.Domain.Entities;
+
+namespace ProjectService.Domain.Repositories;
+
 public interface IProjectRepository
 {
     Task<Project?> GetByIdAsync(string id);

@@ -1,4 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ProjectService.Domain.Entities;
+using ProjectService.Domain.Repositories;
+using ProjectService.Infrastructure.Persistence;
+
+namespace ProjectService.Infrastructure.Repository;
 
 public class ProjectRepository : IProjectRepository
 {

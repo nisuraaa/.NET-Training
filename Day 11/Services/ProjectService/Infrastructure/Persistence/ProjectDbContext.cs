@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ProjectService.Domain.Entities;
+
+namespace ProjectService.Infrastructure.Persistence;
 
 public class ProjectDbContext : DbContext
 {

@@ -1,3 +1,7 @@
+using ProjectService.Domain.Entities;
+
+namespace ProjectService.Application;
+
 public interface IProjectAppService
 {
     Task<Project> AddAsync(string name);
@@ -6,4 +10,5 @@ public interface IProjectAppService
     Task<IEnumerable<Project>> GetAllAsync();
     Task<Project> UpdateAsync(Project project);
     Task<bool> DeleteAsync(string id);
+    Task<IEnumerable<Project>> GetAllProjects();
 }

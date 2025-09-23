@@ -1,8 +1,16 @@
-using ProjectService.Interfaces;
-using ProjectService.Services;
+using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.EntityFrameworkCore;
+
+// Application Layer
+using ProjectService.Application;
+
+// Domain Layer
+using ProjectService.Domain.Repositories;
+
+// Infrastructure Layer
+using ProjectService.Infrastructure.Persistence;
+using ProjectService.Infrastructure.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,14 +28,13 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register DbContext with SQLite
 builder.Services.AddDbContext<ProjectDbContext>(options =>
     options.UseSqlite("Data Source=project.db"));
 
 // Register repositories and services
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-
-
-builder.Services.AddScoped<IProjectAppService, ProjectService.Services.ProjectService>();
+builder.Services.AddScoped<IProjectAppService, ProjectService.Application.ProjectService>();
 
 builder.Services.AddCors(options =>
 {

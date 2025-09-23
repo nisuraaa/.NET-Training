@@ -1,6 +1,7 @@
-using ProjectService.Interfaces;
+using ProjectService.Domain.Repositories;
+using ProjectService.Domain.Entities;
 
-namespace ProjectService.Services
+namespace ProjectService.Application
 {
     public class ProjectService : IProjectAppService
     {
@@ -21,9 +22,14 @@ namespace ProjectService.Services
             return _projectRepository.GetByNameAsync(name);
         }
 
-        public Task<IEnumerable<Project>> GetAllAsync()
+        public async Task<IEnumerable<Project>> GetAllAsync()
         {
-            return _projectRepository.GetAllAsync();
+            return await _projectRepository.GetAllAsync();
+        }
+        
+        public async Task<IEnumerable<Project>> GetAllProjects()
+        {
+            return await _projectRepository.GetAllAsync();
         }
 
         public async Task<Project> AddAsync(string projectName)
