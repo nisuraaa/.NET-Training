@@ -23,7 +23,7 @@ public class EmployeeController : ControllerBase
 
     // GET: api/Employee
     [HttpGet]
-    [Authorize(Policy = "ReadOnlyOrAbove")]
+    [Authorize(Policy = "UserOrAbove")] // All authenticated users can view employees
     public async Task<ActionResult<IEnumerable<Employee>>> GetAllEmployees()
     {
         try
@@ -40,7 +40,6 @@ public class EmployeeController : ControllerBase
 
     // GET: api/Employee/{id}
     [HttpGet("{id}")]
-    [Authorize(Policy = "ReadOnlyOrAbove")]
     public async Task<ActionResult<Employee>> GetEmployee(string id)
     {
         try
@@ -67,7 +66,7 @@ public class EmployeeController : ControllerBase
 
     // POST: api/Employee
     [HttpPost]
-    [Authorize(Policy = "WriteAccess")]
+    [Authorize(Policy = "ManagerOrAdmin")] // Only managers and admins can create employees
     public async Task<ActionResult<Employee>> CreateEmployee([FromBody] CreateEmployeeRequest request)
     {
         try
@@ -92,7 +91,6 @@ public class EmployeeController : ControllerBase
 
     // PUT: api/Employee/{id}
     [HttpPut("{id}")]
-    [Authorize(Policy = "WriteAccess")]
     public async Task<IActionResult> UpdateEmployee(string id, [FromBody] UpdateEmployeeRequest request)
     {
         try
@@ -118,7 +116,7 @@ public class EmployeeController : ControllerBase
 
     // DELETE: api/Employee/{id}
     [HttpDelete("{id}")]
-    [Authorize(Policy = "ManagerOrAdmin")]
+    [Authorize(Policy = "AdminOnly")] // Only admins can delete employees
     public async Task<IActionResult> DeleteEmployee(string id)
     {
         try
@@ -146,7 +144,6 @@ public class EmployeeController : ControllerBase
 
     // GET: api/Employee/department/{departmentName}
     [HttpGet("department/{departmentName}")]
-    [Authorize(Policy = "ReadOnlyOrAbove")]
     public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesByDepartment(string departmentName)
     {
         try
@@ -175,7 +172,6 @@ public class EmployeeController : ControllerBase
 
     // GET: api/Employee/age-range
     [HttpGet("age-range")]
-    [Authorize(Policy = "ReadOnlyOrAbove")]
     public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesByAgeRange(
         [FromQuery] int minAge,
         [FromQuery] int maxAge)

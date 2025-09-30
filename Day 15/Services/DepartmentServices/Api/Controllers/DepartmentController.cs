@@ -17,7 +17,7 @@ namespace DepartmentServices.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "WriteAccess")]
+        [Authorize(Policy = "ManagerOrAdmin")] // Only managers and admins can create departments
         public async Task<ActionResult<Department>> CreateDepartment([FromBody] CreateDepartmentRequest request)
         {
             var department = await _departmentService.AddAsync(request.Name);
@@ -25,7 +25,7 @@ namespace DepartmentServices.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "ReadOnlyOrAbove")]
+        [Authorize(Policy = "UserOrAbove")] // All authenticated users can view departments
         public async Task<ActionResult<Department>> GetDepartment(string id)
         {
             var department = await _departmentService.GetByIdAsync(id);
@@ -37,7 +37,7 @@ namespace DepartmentServices.Controllers
         }
 
         [HttpGet("name/{name}")]
-        [Authorize(Policy = "ReadOnlyOrAbove")]
+        [Authorize(Policy = "UserOrAbove")] // All authenticated users can view departments
         public async Task<ActionResult<Department>> GetDepartmentByName(string name)
         {
             var department = await _departmentService.GetByNameAsync(name);

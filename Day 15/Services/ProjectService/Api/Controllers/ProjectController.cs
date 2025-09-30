@@ -19,7 +19,7 @@ namespace ProjectService.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "WriteAccess")]
+        [Authorize(Policy = "ManagerOrAdmin")] // Only managers and admins can create projects
         public async Task<ActionResult<Project>> CreateProject([FromBody] CreateProjectRequest request)
         {
             try
@@ -39,7 +39,6 @@ namespace ProjectService.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "ReadOnlyOrAbove")]
         public async Task<ActionResult<Project>> GetProject(string id)
         {
             try
@@ -58,7 +57,6 @@ namespace ProjectService.Api.Controllers
         }
 
         [HttpGet("name/{name}")]
-        [Authorize(Policy = "ReadOnlyOrAbove")]
         public async Task<ActionResult<Project>> GetProjectByName(string name)
         {
             try
@@ -77,7 +75,7 @@ namespace ProjectService.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "ReadOnlyOrAbove")]
+        [Authorize(Policy = "UserOrAbove")] // All authenticated users can view projects
         public async Task<ActionResult<IEnumerable<Project>>> GetAllProjects()
         {
             try

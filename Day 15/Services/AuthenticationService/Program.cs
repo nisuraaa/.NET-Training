@@ -1,41 +1,41 @@
-
-using DepartmentServices.Interfaces;
-using DepartmentServices.Services;
-using FluentValidation;
-using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
-using MediatR;
-using System.Reflection;
-using DepartmentServices.Application;
-using MassTransit;
-using DepartmentServices.Application.EventHandlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using System.Reflection;
+
+// Application Layer
+using AuthenticationService.Application.Services;
+using AuthenticationService.Application.Validators;
+
+// Domain Layer
+using AuthenticationService.Domain.Entities;
+
+// Infrastructure Layer
+using AuthenticationService.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     options.JsonSerializerOptions.WriteIndented = true;
 });
 
+// Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
-// Add MediatR
-builder.Services.AddMediatR(cfg => {
-    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-});
 
 // Add Swagger/OpenAPI support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Department Service API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Authentication Service API", Version = "v1" });
     
     // Add JWT authentication to Swagger
     c.AddSecurityDefinition("Bearer", new()
@@ -64,30 +64,26 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<DepartmentDbContext>(options =>
-    options.UseSqlite("Data Source=department.db"));
+// Add Entity Framework
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseSqlite("Data Source=auth.db"));
 
-// Register repositories and services
-builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-builder.Services.AddScoped<IDepartmentAppService, DepartmentAppService>();
-
-// Configure MassTransit with RabbitMQ
-builder.Services.AddMassTransit(x =>
+// Add Identity
+builder.Services.AddIdentity<User, Role>(options =>
 {
-    x.AddConsumer<EmployeeEventConsumer>();
-    x.AddConsumer<ProjectEventConsumer>();
-    
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("localhost", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-        
-        cfg.ConfigureEndpoints(context);
-    });
-});
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false; // For demo purposes
+})
+.AddEntityFrameworkStores<AuthDbContext>()
+.AddDefaultTokenProviders();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -123,6 +119,11 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UserOrAbove", policy => policy.RequireRole("User", "Manager", "Admin"));
 });
 
+// Register services
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -135,9 +136,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 // Configure the HTTP request pipeline.
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -146,16 +145,30 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<DepartmentDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
     await context.Database.EnsureCreatedAsync();
+    
+    // Seed roles if they don't exist
+    var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Role>>();
+    var roles = new[] { "Admin", "Manager", "User" };
+    
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new Role { Name = role, Description = $"{role} role" });
+        }
+    }
 }
-
 
 app.Run();

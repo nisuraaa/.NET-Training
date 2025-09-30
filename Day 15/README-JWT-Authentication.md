@@ -4,285 +4,265 @@ This document describes the JWT (JSON Web Token) authentication implementation a
 
 ## Overview
 
-JWT authentication has been implemented across all microservices to provide secure, stateless authentication and role-based authorization. The implementation includes:
-
-- JWT token generation and validation
-- Role-based access control (RBAC)
-- OAuth 2.0 compatible token-based security
-- Cross-service authentication
+The microservices now implement JWT-based authentication with OAuth 2.0 principles and role-based authorization. This provides secure, stateless authentication across all services.
 
 ## Architecture
 
-### Shared Authentication Components
+### Authentication Service
+- **Port**: 7001
+- **Purpose**: Centralized authentication and token management
+- **Features**:
+  - User registration and login
+  - JWT token generation and validation
+  - Role-based user management
+  - Token refresh functionality
 
-All authentication components are located in the `SharedEvents` project to ensure consistency across microservices:
+### Protected Microservices
+- **Department Service** (Port 5106)
+- **Employee Service** (Port 5107) 
+- **Project Service** (Port 5043)
 
-- **JwtConfiguration**: Configuration settings for JWT tokens
-- **UserRoles**: Predefined user roles (Admin, Manager, Employee, ReadOnly)
-- **User**: User entity with roles and authentication data
-- **LoginRequest/LoginResponse**: DTOs for authentication requests
-- **IJwtService**: Service interface for JWT operations
-- **JwtService**: Implementation of JWT token generation and validation
-- **IUserService**: Service interface for user management
-- **UserService**: Implementation of user authentication and management
-- **JwtExtensions**: Extension methods for easy JWT configuration
+All microservices now require JWT authentication for access.
 
-### User Roles and Permissions
+## User Roles
 
-| Role | Permissions |
-|------|-------------|
-| **Admin** | Full access to all operations |
-| **Manager** | Can manage employees and projects, view all data |
-| **Employee** | Can create/edit data, view all data |
-| **ReadOnly** | Can only view data |
+The system supports three user roles with different permission levels:
 
-### Authorization Policies
-
-- **AdminOnly**: Requires Admin role
-- **ManagerOrAdmin**: Requires Manager or Admin role
-- **EmployeeOrAbove**: Requires Employee, Manager, or Admin role
-- **ReadOnlyOrAbove**: Requires any role (ReadOnly, Employee, Manager, or Admin)
-- **WriteAccess**: Requires Employee, Manager, or Admin role (excludes ReadOnly)
+1. **Admin** - Full access to all operations
+2. **Manager** - Can create and manage resources, cannot delete
+3. **User** - Read-only access to most resources
 
 ## API Endpoints
 
-### Authentication Endpoints
+### Authentication Service
 
-All authentication endpoints are available in the Employee Service:
+#### Register User
+```
+POST /api/auth/register
+Content-Type: application/json
 
-#### POST /api/auth/login
-Authenticate user and receive JWT token.
-
-**Request:**
-```json
 {
-  "email": "admin@company.com",
-  "password": "Admin123!"
+  "firstName": "John",
+  "lastName": "Doe", 
+  "email": "john.doe@example.com",
+  "password": "Password123",
+  "confirmPassword": "Password123",
+  "role": "Admin"
 }
 ```
 
-**Response:**
-```json
+#### Login
+```
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "Password123"
+}
+```
+
+#### Refresh Token
+```
+POST /api/auth/refresh
+Content-Type: application/json
+
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "base64-encoded-refresh-token",
-  "expiration": "2024-01-01T12:00:00Z",
-  "userId": "user-id",
-  "email": "admin@company.com",
-  "roles": ["Admin"]
+  "refreshToken": "refresh_token_here"
 }
 ```
 
-#### POST /api/auth/refresh
-Refresh an expired JWT token.
-
-**Request:**
-```json
-{
-  "token": "expired-jwt-token"
-}
+#### Validate Token
+```
+GET /api/auth/validate
+Authorization: Bearer <token>
 ```
 
-#### POST /api/auth/validate
-Validate a JWT token.
-
-**Request:**
-```json
-{
-  "token": "jwt-token-to-validate"
-}
+#### Logout
+```
+POST /api/auth/logout
+Authorization: Bearer <token>
 ```
 
-#### GET /api/auth/test-users
-Get list of test users for development.
+## Authorization Policies
 
-### Protected Endpoints
+### Department Service
+- **Create Department**: `ManagerOrAdmin` role required
+- **Get Department**: `UserOrAbove` role required
+- **Get Department by Name**: `UserOrAbove` role required
 
-All microservice endpoints now require authentication. Here are the authorization requirements:
+### Employee Service
+- **Get All Employees**: `UserOrAbove` role required
+- **Get Employee by ID**: `UserOrAbove` role required
+- **Create Employee**: `ManagerOrAdmin` role required
+- **Update Employee**: `UserOrAbove` role required
+- **Delete Employee**: `AdminOnly` role required
 
-#### Employee Service
-- **GET /api/employee** - ReadOnlyOrAbove
-- **GET /api/employee/{id}** - ReadOnlyOrAbove
-- **POST /api/employee** - WriteAccess
-- **PUT /api/employee/{id}** - WriteAccess
-- **DELETE /api/employee/{id}** - ManagerOrAdmin
-- **GET /api/employee/department/{name}** - ReadOnlyOrAbove
-- **GET /api/employee/age-range** - ReadOnlyOrAbove
+### Project Service
+- **Create Project**: `ManagerOrAdmin` role required
+- **Get All Projects**: `UserOrAbove` role required
+- **Get Project by ID**: `UserOrAbove` role required
+- **Get Project by Name**: `UserOrAbove` role required
 
-#### Department Service
-- **GET /api/department/{id}** - ReadOnlyOrAbove
-- **GET /api/department/name/{name}** - ReadOnlyOrAbove
-- **POST /api/department** - WriteAccess
+## JWT Configuration
 
-#### Project Service
-- **GET /api/project** - ReadOnlyOrAbove
-- **GET /api/project/{id}** - ReadOnlyOrAbove
-- **GET /api/project/name/{name}** - ReadOnlyOrAbove
-- **POST /api/project** - WriteAccess
-
-## Configuration
-
-### JWT Settings
-
-JWT configuration is stored in `appsettings.json` for each microservice:
+All services use the same JWT configuration:
 
 ```json
 {
   "Jwt": {
-    "SecretKey": "YourSuperSecretKeyThatIsAtLeast32CharactersLong!",
-    "Issuer": "MicroservicesAuth",
-    "Audience": "MicroservicesUsers",
-    "ExpirationMinutes": 60
+    "SecretKey": "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatShouldBeAtLeast32CharactersLong",
+    "Issuer": "AuthenticationService",
+    "Audience": "MicroservicesApp",
+    "AccessTokenExpirationMinutes": 60,
+    "RefreshTokenExpirationDays": 7
   }
 }
 ```
 
-### Service Configuration
+## Usage Examples
 
-Each microservice includes JWT authentication in its `Program.cs`:
+### 1. Register and Login
+```bash
+# Register a new user
+curl -X POST https://localhost:7001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com", 
+    "password": "Password123",
+    "confirmPassword": "Password123",
+    "role": "Admin"
+  }'
 
-```csharp
-// Add JWT Authentication and Authorization
-builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddJwtAuthorization();
-
-// In the pipeline
-app.UseAuthentication();
-app.UseAuthorization();
+# Login to get token
+curl -X POST https://localhost:7001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "Password123"
+  }'
 ```
 
-## Test Users
+### 2. Access Protected Resources
+```bash
+# Use the token from login response
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-The following test users are available for development and testing:
+# Create a department (requires ManagerOrAdmin role)
+curl -X POST https://localhost:5106/api/department \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"name": "Engineering"}'
 
-| Email | Password | Role | Permissions |
-|-------|----------|------|-------------|
-| admin@company.com | Admin123! | Admin | Full access |
-| manager@company.com | Manager123! | Manager | Manage employees and projects |
-| employee@company.com | Employee123! | Employee | Create/edit data |
-| readonly@company.com | ReadOnly123! | ReadOnly | View only |
+# Get all employees (requires UserOrAbove role)
+curl -X GET https://localhost:5107/api/employee \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Swagger Integration
+
+All services now include JWT authentication in their Swagger documentation:
+
+1. Navigate to any service's Swagger UI (e.g., `https://localhost:7001/swagger`)
+2. Click the "Authorize" button
+3. Enter `Bearer <your_token>` in the format: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+4. Click "Authorize" to authenticate
+5. Now you can test all protected endpoints directly from Swagger
+
+## Security Features
+
+### JWT Token Security
+- **Secret Key**: 64-character secret key for signing tokens
+- **Expiration**: 60-minute access token lifetime
+- **Refresh Tokens**: 7-day refresh token lifetime
+- **Algorithm**: HMAC SHA-256 for token signing
+
+### Password Security
+- Minimum 6 characters
+- Must contain uppercase, lowercase, and numeric characters
+- Passwords are hashed using ASP.NET Core Identity
+
+### Role-Based Access Control
+- Hierarchical role system (Admin > Manager > User)
+- Fine-grained permissions per endpoint
+- Automatic role validation on each request
 
 ## Testing
 
-### Manual Testing
+Use the provided test script to verify the implementation:
 
-1. **Start all microservices**
-2. **Get authentication token:**
-   ```bash
-   curl -X POST https://localhost:7001/api/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{"email":"admin@company.com","password":"Admin123!"}'
-   ```
-
-3. **Use token in requests:**
-   ```bash
-   curl -X GET https://localhost:7001/api/employee \
-     -H "Authorization: Bearer YOUR_JWT_TOKEN"
-   ```
-
-### Automated Testing
-
-Run the provided test scripts:
-
-**PowerShell (Windows):**
 ```powershell
 .\test-jwt-auth.ps1
 ```
 
-**Bash (Linux/macOS):**
-```bash
-./test-jwt-auth.sh
+This script will:
+1. Register a new user
+2. Login to get a JWT token
+3. Test access to all protected endpoints
+4. Verify role-based authorization
+5. Test unauthorized access scenarios
+
+## Development Notes
+
+### Adding New Protected Endpoints
+
+1. Add `[Authorize]` attribute to the controller or action
+2. Specify role requirements using `[Authorize(Policy = "PolicyName")]`
+3. Available policies:
+   - `AdminOnly` - Only Admin role
+   - `ManagerOrAdmin` - Manager or Admin roles
+   - `UserOrAbove` - User, Manager, or Admin roles
+
+### Custom Authorization Policies
+
+To add new authorization policies, update the `Program.cs` file in each service:
+
+```csharp
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CustomPolicy", policy => 
+        policy.RequireRole("CustomRole"));
+});
 ```
-
-## Security Features
-
-### Token Security
-- **HMAC SHA-256** signing algorithm
-- **Configurable expiration** (default: 60 minutes)
-- **Refresh token** support for seamless re-authentication
-- **Token validation** with proper error handling
-
-### Role-Based Access Control
-- **Granular permissions** based on user roles
-- **Policy-based authorization** for flexible access control
-- **Cross-service consistency** in authorization rules
-
-### Security Best Practices
-- **Secure secret key** (minimum 32 characters)
-- **Token expiration** to limit exposure
-- **HTTPS required** for production
-- **Proper error handling** without information leakage
-
-## Implementation Details
-
-### Token Structure
-
-JWT tokens contain the following claims:
-- `sub` (Subject): User ID
-- `email`: User email address
-- `name`: User full name
-- `role`: User roles (multiple roles supported)
-- `jti` (JWT ID): Unique token identifier
-- `iss` (Issuer): Token issuer
-- `aud` (Audience): Token audience
-- `exp` (Expiration): Token expiration time
-
-### Error Handling
-
-Authentication errors return appropriate HTTP status codes:
-- **401 Unauthorized**: Invalid credentials or expired token
-- **403 Forbidden**: Valid token but insufficient permissions
-- **500 Internal Server Error**: Server-side authentication errors
-
-### CORS Configuration
-
-CORS is configured to allow cross-origin requests with proper authentication headers.
-
-## Production Considerations
-
-### Security Recommendations
-1. **Use strong secret keys** (minimum 256 bits)
-2. **Implement token rotation** for enhanced security
-3. **Use HTTPS** in production environments
-4. **Implement rate limiting** for authentication endpoints
-5. **Log authentication events** for security monitoring
-6. **Use secure token storage** on the client side
-
-### Performance Considerations
-1. **Token caching** for frequently accessed tokens
-2. **Database optimization** for user lookups
-3. **Load balancing** considerations for stateless authentication
-4. **Token size optimization** for network efficiency
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **401 Unauthorized**: Check token validity and expiration
-2. **403 Forbidden**: Verify user has required role/permissions
-3. **Token validation errors**: Ensure consistent JWT configuration across services
-4. **CORS issues**: Verify CORS configuration includes authentication headers
+1. **401 Unauthorized**: Check if the JWT token is valid and not expired
+2. **403 Forbidden**: Verify the user has the required role for the operation
+3. **Token validation failed**: Ensure all services use the same JWT configuration
 
-### Debug Information
+### Debugging
 
-Enable detailed logging in `appsettings.Development.json`:
+Enable detailed logging in `appsettings.json`:
 
 ```json
 {
   "Logging": {
     "LogLevel": {
-      "Microsoft.AspNetCore.Authentication": "Debug",
-      "Microsoft.AspNetCore.Authorization": "Debug"
+      "Microsoft.AspNetCore.Authentication": "Debug"
     }
   }
 }
 ```
 
+## Security Considerations
+
+1. **Production Deployment**: Change the JWT secret key to a secure, randomly generated value
+2. **HTTPS Only**: Always use HTTPS in production
+3. **Token Storage**: Store refresh tokens securely (database recommended)
+4. **Rate Limiting**: Implement rate limiting for authentication endpoints
+5. **Audit Logging**: Log all authentication and authorization events
+
 ## Future Enhancements
 
-1. **Refresh token rotation** for enhanced security
-2. **Multi-factor authentication** support
-3. **OAuth 2.0 external providers** integration
-4. **Token blacklisting** for logout functionality
-5. **Audit logging** for security compliance
-6. **Rate limiting** for authentication endpoints
+- [ ] Implement refresh token storage in database
+- [ ] Add multi-factor authentication (MFA)
+- [ ] Implement token blacklisting for logout
+- [ ] Add API rate limiting
+- [ ] Implement OAuth 2.0 with external providers (Google, Microsoft)
+- [ ] Add session management and concurrent session limits
